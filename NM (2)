@@ -1,0 +1,100 @@
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+const usersRouter = require("./routes/users");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(helmet()); // Security headers
+
+app.use("/api/users", usersRouter);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const jwt = require("jsonwebtoken");
+
+function authenticateToken(req, res, next) {
+  const token = req.headers["authorization"];
+  if (!token) return res.sendStatus(401);
+  jwt.verify(token, "SECRET_KEY", (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+module.exports = authenticateToken;
+const express = require("express");
+const router = express.Router();
+const authenticateToken = require("../middleware/auth");
+
+const users = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" }
+];
+
+router.get("/", authenticateToken, (req, res) => {
+  res.json(users);
+});
+
+module.exports = router;
+import React, { useState } from "react";
+import DarkModeToggle from "./components/DarkModeToggle";
+import SearchFilter from "./components/SearchFilter";
+
+export default function App() {
+  const [dark, setDark] = useState(false);
+
+  return (
+    <div className={dark ? "bg-gray-900 text-white min-h-screen" : "bg-gray-50 min-h-screen"}>
+      <div className="p-4">
+        <DarkModeToggle dark={dark} setDark={setDark} />
+        <SearchFilter />
+        <h1 className="text-2xl mt-4">Welcome to My App</h1>
+      </div>
+    </div>
+  );
+}
+export default function DarkModeToggle({ dark, setDark }) {
+  return (
+    <button
+      onClick={() => setDark(!dark)}
+      className="border px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-700"
+    >
+      {dark ? "Light Mode" : "Dark Mode"}
+    </button>
+  );
+}
+import React, { useState } from "react";
+
+export default function SearchFilter() {
+  const [query, setQuery] = useState("");
+  return (
+    <input
+      type="text"
+      placeholder="Search..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      className="border p-2 rounded mt-2 w-full"
+    />
+  );
+}
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import "./styles.css";
+
+ReactDOM.render(<App />, document.getElementById("root"));
+const DarkModeToggle = React.lazy(() => import("./components/DarkModeToggle"));
+import { render, screen, fireEvent } from "@testing-library/react";
+import DarkModeToggle from "./DarkModeToggle";
+
+test("toggles dark mode", () => {
+  let dark = false;
+  const setDark = (val) => { dark = val; };
+  render(<DarkModeToggle dark={dark} setDark={setDark} />);
+  const button = screen.getByText(/Dark Mode/i);
+  fireEvent.click(button);
+  expect(dark).toBe(true);
+});
